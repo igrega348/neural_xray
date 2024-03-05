@@ -1,4 +1,4 @@
-# neural_xray
+# Neural rendering and X-ray
 Exploring the potential for neural rendering methods in x-ray tomography
 
 ## Objectives
