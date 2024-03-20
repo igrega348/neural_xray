@@ -1,6 +1,8 @@
 # Neural rendering and X-ray
 Exploring the potential for neural rendering methods in x-ray tomography
 
+Author: Ivan Grega
+
 ## Objectives
 X-ray computed tomography is an established method which can be used to obtain information about the internal composition of objects.
 In this project, we try to answer the following two questions:
