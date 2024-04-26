@@ -49,6 +49,7 @@ Derived framework to calculate optimum angles with parallel beams and showed how
 #### ML Results
 Trained models to fit the four simple objects.
 Depending on the degree of complexity of the object, different numbers of projections are needed for a satisfactory reconstruction.
+There is an effect of perspective. Since mutual information between two views goes down as cone angle increases.
 
 ### March 2024
 #### Simple tests with synthetic data
