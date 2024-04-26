@@ -1,0 +1,12 @@
+[submodule "nerf_data"]
+	path = nerf_data
+	url = https://github.com/igrega348/nerf_data.git
+	branch = main
+[submodule "nerfstudio-xray"]
+	path = nerfstudio-xray
+	url = https://github.com/igrega348/nerfstudio-xray.git
+	branch = main
+[submodule "nerfstudio"]
+	path = nerfstudio
+	url = https://github.com/igrega348/nerfstudio.git
+	branch = main
