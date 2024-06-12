@@ -6,6 +6,8 @@ _site/
 .bundle/
 vendor/
 
+*.pyc
+
 # any reconstructed data
 reconstructed/
 outputs*
