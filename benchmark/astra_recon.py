@@ -167,19 +167,21 @@ def main(
     nmax = 200
     print(f'Running {neach} iterations per step')
     residual_error = []
-    t = PrintTableMetrics(['Iteration', 'Error'])
+    t = PrintTableMetrics(['Iteration', 'Error', 'de/rng'])
+    de_rng = 0
     for i in range(nmax):
         # Run a single iteration
         astra.algorithm.run(alg_id, neach)
         residual_error.append(astra.algorithm.get_res_norm(alg_id))
-        t.update({'Iteration': i, 'Error': residual_error[-1]})
         # check convergence
         if len(residual_error) > 1:
             rng = max(residual_error) - min(residual_error)
             de = residual_error[-1] - residual_error[-2]
+            de_rng = de / rng
             # improvement by less than threshold
-            if de > 0 or -de < 0.001*rng:
+            if de > 0 or -de_rng < 0.001:
                 break
+        t.update({'Iteration': i, 'Error': residual_error[-1], 'de/rng': de_rng})
 
     # Get the result and save
     rec = astra.data3d.get(rec_id)
@@ -195,7 +197,7 @@ def main(
     del _tmp
 
     plt.figure(2)
-    plt.imshow(rec[:,:,resolution//2])
+    plt.imshow(np.log(rec[:,:,resolution//2]+1))
     plt.savefig(output_folder/f'slice.png')
     plt.close()
 
