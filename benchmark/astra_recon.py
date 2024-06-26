@@ -180,7 +180,8 @@ def main(
     nmax = 50
     print(f'Running {neach} iterations per step')
     residual_error = []
-    t = PrintTableMetrics(['Iteration', 'Error'], max_iter=nmax)
+    t = PrintTableMetrics(['Iteration', 'Error', 'de/rng'])
+    de_rng = 0
     for i in range(nmax):
         # Run a single iteration
         astra.algorithm.run(alg_id, neach)
@@ -196,9 +197,11 @@ def main(
         if len(residual_error) > 1:
             rng = max(residual_error) - min(residual_error)
             de = residual_error[-1] - residual_error[-2]
+            de_rng = de / rng
             # improvement by less than threshold
-            if de > 0 or -de < 0.001*rng:
+            if de > 0 or -de_rng < 0.001:
                 break
+        t.update({'Iteration': i, 'Error': residual_error[-1], 'de/rng': de_rng})
 
     # Get the result and save
     rec = astra.data3d.get(rec_id)

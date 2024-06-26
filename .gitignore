@@ -10,4 +10,4 @@ vendor/
 
 # any reconstructed data
 reconstructed/
-outputs/
+outputs*
