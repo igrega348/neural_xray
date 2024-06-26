@@ -12,6 +12,7 @@ def main(input: Path):
     else:
         raise ValueError(f'Invalid input file {input}')
     print(f'Loaded {data.size} elements of type {data.dtype}')
+    nx, ny, nz = data.shape
 
     # Show 3 slices, one from each axis. Create sliders to change the slice.
     cv.namedWindow('x-slice', cv.WINDOW_NORMAL)
@@ -19,7 +20,17 @@ def main(input: Path):
     cv.namedWindow('z-slice', cv.WINDOW_NORMAL)
     cv.namedWindow('control', cv.WINDOW_NORMAL)
 
-    def on_change(val):
+    # keep track of circles
+    global circles
+    circles = {
+        'x': None,
+        'y': None,
+        'z': None
+    }
+
+    def update_slices(val):
+        global circles
+
         x = cv.getTrackbarPos('x', 'control')
         y = cv.getTrackbarPos('y', 'control')
         z = cv.getTrackbarPos('z', 'control')
@@ -31,14 +42,15 @@ def main(input: Path):
         for k,v in slices.items():
             im = cv.medianBlur(v, 5)
             h,w = im.shape
-            circles = cv.HoughCircles(im, cv.HOUGH_GRADIENT, 1, h / 8,
+            _circles = cv.HoughCircles(im, cv.HOUGH_GRADIENT, 1, h / 8,
                                     param1=100, param2=10,
                                     minRadius=0, maxRadius=0)
+            circles[k] = _circles
 
-            if circles is not None:
+            if _circles is not None:
                 v = cv.cvtColor(v, cv.COLOR_GRAY2BGR)
-                circles = np.uint16(np.around(circles))
-                for i in circles[0, :]:
+                _circles = np.uint16(np.around(_circles))
+                for i in _circles[0, :]:
                     center = (i[0], i[1])
                     # circle outline
                     radius = i[2]
@@ -46,10 +58,60 @@ def main(input: Path):
 
             cv.imshow(f'{k}-slice', v)
 
-    cv.createTrackbar('x', 'control', 0, data.shape[0]-1, on_change)
-    cv.createTrackbar('y', 'control', 0, data.shape[1]-1, on_change)
-    cv.createTrackbar('z', 'control', 0, data.shape[2]-1, on_change)
-    on_change(0)
+    def on_click_x(event, y, z, flags, param):
+        if event == cv.EVENT_LBUTTONDOWN:
+            z = nz - z - 1
+            cv.setTrackbarPos('y', 'control', y)
+            cv.setTrackbarPos('z', 'control', z)
+            update_slices(0)
+            fit_sphere()
+
+    def on_click_y(event, x, z, flags, param):
+        if event == cv.EVENT_LBUTTONDOWN:
+            z = nz - z - 1
+            cv.setTrackbarPos('x', 'control', x)
+            cv.setTrackbarPos('z', 'control', z)
+            update_slices(0)
+            fit_sphere()
+
+    def on_click_z(event, x, y, flags, param):
+        if event == cv.EVENT_LBUTTONDOWN:
+            y = ny - y - 1
+            cv.setTrackbarPos('x', 'control', x)
+            cv.setTrackbarPos('y', 'control', y)
+            update_slices(0)
+            fit_sphere()
+
+    def fit_sphere():
+        x = cv.getTrackbarPos('x', 'control')
+        y = cv.getTrackbarPos('y', 'control')
+        z = cv.getTrackbarPos('z', 'control')
+        for k,v in circles.items():
+            if v is None: continue
+            for p0, p1, r in v[0]:
+                if k == 'x':
+                    p1 = nz - p1
+                    xc, yc, zc = x, p0, p1
+                elif k == 'y':
+                    p1 = nz - p1
+                    xc, yc, zc = p0, y, p1
+                elif k == 'z':
+                    p1 = ny - p1
+                    xc, yc, zc = p0, p1, z
+                else: raise ValueError(f'Invalid slice {k}')
+
+                # is the position of click inside the circle?
+                if (xc-x)**2 + (yc-y)**2 + (zc-z)**2 <= r**2:
+                    # yes, print the circle
+                    print(f'{k}-slice: circle at ({xc}, {yc}) with radius {r}')
+
+    cv.createTrackbar('x', 'control', 0, data.shape[0]-1, update_slices)
+    cv.createTrackbar('y', 'control', 0, data.shape[1]-1, update_slices)
+    cv.createTrackbar('z', 'control', 0, data.shape[2]-1, update_slices)
+    cv.setMouseCallback('x-slice', on_click_x)
+    cv.setMouseCallback('y-slice', on_click_y)
+    cv.setMouseCallback('z-slice', on_click_z)
+    update_slices(0)
     cv.waitKey(0)
     cv.destroyAllWindows()
 
