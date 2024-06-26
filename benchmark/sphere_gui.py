@@ -86,24 +86,43 @@ def main(input: Path):
         x = cv.getTrackbarPos('x', 'control')
         y = cv.getTrackbarPos('y', 'control')
         z = cv.getTrackbarPos('z', 'control')
+        circle_data = {}
         for k,v in circles.items():
             if v is None: continue
             for p0, p1, r in v[0]:
                 if k == 'x':
                     p1 = nz - p1
-                    xc, yc, zc = x, p0, p1
+                    yc, zc = p0, p1
+                    if (y-yc)**2 + (z-zc)**2 <= r**2:
+                        circle_data[k] = {k: x, 'ycx': yc, 'zcx': zc, 'rx': r}
                 elif k == 'y':
                     p1 = nz - p1
-                    xc, yc, zc = p0, y, p1
+                    xc, zc = p0, p1
+                    if (x-xc)**2 + (z-zc)**2 <= r**2:
+                        circle_data[k] = {k: y, 'xcy': xc, 'zcy': zc, 'ry': r}
                 elif k == 'z':
                     p1 = ny - p1
-                    xc, yc, zc = p0, p1, z
+                    xc, yc = p0, p1
+                    if (x-xc)**2 + (y-yc)**2 <= r**2:
+                        circle_data[k] = {k: z, 'xcz': xc, 'ycz': yc, 'rz': r}
                 else: raise ValueError(f'Invalid slice {k}')
 
-                # is the position of click inside the circle?
-                if (xc-x)**2 + (yc-y)**2 + (zc-z)**2 <= r**2:
-                    # yes, print the circle
-                    print(f'{k}-slice: circle at ({xc}, {yc}) with radius {r}')
+        if len(circle_data) < 3:
+            return
+        
+        # find centre
+        xc = (circle_data['y']['xcy'] + circle_data['z']['xcz']) / 2
+        yc = (circle_data['x']['ycx'] + circle_data['z']['ycz']) / 2
+        zc = (circle_data['x']['zcx'] + circle_data['y']['zcy']) / 2
+        # find radius
+        deltax = x - xc
+        deltay = y - yc
+        deltaz = z - zc
+        rx = np.sqrt(deltax**2 + circle_data['x']['rx']**2)
+        ry = np.sqrt(deltay**2 + circle_data['y']['ry']**2)
+        rz = np.sqrt(deltaz**2 + circle_data['z']['rz']**2)
+        R = np.mean([rx, ry, rz])
+        print(f'Centre: {xc}, {yc}, {zc}, Radius: {R}')
 
     cv.createTrackbar('x', 'control', 0, data.shape[0]-1, update_slices)
     cv.createTrackbar('y', 'control', 0, data.shape[1]-1, update_slices)
