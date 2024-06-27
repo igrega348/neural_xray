@@ -108,9 +108,21 @@ def load_projections(
 
     return images, proj_geom, image_filenames
 
+def normalize_reorder(rec: np.ndarray) -> np.ndarray:
+    rec = (rec - rec.min()) / (rec.max() - rec.min()) * 255
+    rec = np.transpose(rec, (1,2,0)) # z x y -> x y z
+    rec = np.flip(rec, axis=0) # flip x
+    return rec
+
+def save_slice(rec: np.ndarray, output_dir: Path):
+    plt.figure()
+    plt.imshow(rec[:,:,rec.shape[2]//2])
+    plt.savefig(output_dir/f'slice.png')
+    plt.close()
+
 def main(
-        input_folder: Path,
-        output_folder: Path,
+        input_dir: Path,
+        output_dir: Path,
         Lscale: Optional[float] = None,
         image_downscale: float = 1.0,
         resolution: int = 256,
@@ -119,20 +131,21 @@ def main(
         istep: int = 1,
         algorithm: Optional[Literal['SIRT3D_CUDA','CGLS3D_CUDA']] = 'SIRT3D_CUDA'
 ):
-    output_folder.mkdir(parents=True, exist_ok=True)
-    print(f'Output folder: {output_folder}')
+    output_dir.mkdir(parents=True, exist_ok=True)
+    print(f'Output folder: {output_dir}')
 
     if Lscale is None:
         Lscale = float(resolution/2)
     
     def filter_name(x):
-        if 'train' not in x:
-            return False
+        # if 'train' not in x:
+        #     return False
         i = int(x.split("_")[-1])
         return i >= imin and i<=imax and (i - imin) % istep == 0
+    # filter_name = lambda x: True
 
     proj_data, proj_geom, image_filenames = load_projections(
-        input_folder, filter_name, image_downscale, Lscale
+        input_dir, filter_name, image_downscale, Lscale
     )
 
     vol_geom = astra.create_vol_geom(resolution, resolution, resolution)
@@ -147,7 +160,7 @@ def main(
     # Display a single projection image
     plt.figure(1)
     plt.imshow(proj_data[:,0,:], cmap='gray')
-    plt.savefig(output_folder/'projection.png')
+    plt.savefig(output_dir/'projection.png')
     plt.close()
 
     # Create a data object for the reconstruction
@@ -163,8 +176,8 @@ def main(
     alg_id = astra.algorithm.create(cfg)
 
     # Run the algorithm
-    neach = 20
-    nmax = 200
+    neach = 2
+    nmax = 50
     print(f'Running {neach} iterations per step')
     residual_error = []
     t = PrintTableMetrics(['Iteration', 'Error', 'de/rng'])
@@ -173,6 +186,13 @@ def main(
         # Run a single iteration
         astra.algorithm.run(alg_id, neach)
         residual_error.append(astra.algorithm.get_res_norm(alg_id))
+
+        # save slice
+        rec = astra.data3d.get(rec_id)
+        rec = normalize_reorder(rec)
+        save_slice(rec, output_dir)
+
+        t.update({'Iteration': i, 'Error': residual_error[-1]})
         # check convergence
         if len(residual_error) > 1:
             rng = max(residual_error) - min(residual_error)
@@ -185,34 +205,19 @@ def main(
 
     # Get the result and save
     rec = astra.data3d.get(rec_id)
-    # swap axes, normalize and convert to uint8
-    rec = (rec - rec.min()) / (rec.max() - rec.min()) * 255
-    # z x y -> x y z
-    rec = np.transpose(rec, (1,2,0))
-    # flip x
-    rec = np.flip(rec, axis=0)
-    _tmp = rec.swapaxes(0,2).astype(np.uint8)
-    _tmp.tofile(output_folder/f'vol_zyx.raw') 
-    np.save(output_folder/f'vol_zyx.npy', _tmp)
+    rec = normalize_reorder(rec)
+    _tmp = rec.swapaxes(0,2).astype(np.float32)
+    _tmp.tofile(output_dir/f'vol_zyx.raw') 
+    np.savez_compressed(output_dir/f'vol_zyx.npz', vol=_tmp)
     del _tmp
 
-    plt.figure(2)
-    plt.imshow(np.log(rec[:,:,resolution//2]+1))
-    plt.savefig(output_folder/f'slice.png')
-    plt.close()
+    # save slice
+    save_slice(rec, output_dir)
 
     plt.figure(4)
     plt.plot(neach*np.arange(len(residual_error)), residual_error)
-    # plt.ylim(bottom=0)
-    plt.savefig(output_folder/f'convergence.png')
+    plt.savefig(output_dir/f'convergence.png')
     plt.close()
-
-    # out_dir = output_folder/Path(f'./slices')
-    # out_dir.mkdir(exist_ok=True, parents=True)
-    # for i in range(0,rec.shape[2],rec.shape[2]//64):
-    #     im = rec[:,:,i]
-    #     im = (im - rec.min()) / (rec.max() - rec.min()) * 255
-    #     cv.imwrite(str(out_dir/f'slice_{i:03d}.png'), im.astype(np.uint8))
 
     # Clean up. Note that GPU memory is tied up in the algorithm object,
     # and main RAM in the data objects.
@@ -224,7 +229,7 @@ def main(
     proj_geom['ProjectionAngles'] = proj_geom['ProjectionAngles'].tolist()
     proj_geom['image_filenames'] = image_filenames
     proj_geom['algorithm'] = algorithm
-    (output_folder/'config.json').write_text(json.dumps(proj_geom, indent=2))
+    (output_dir/'config.json').write_text(json.dumps(proj_geom, indent=2))
 
 if __name__ == '__main__':
     tyro.cli(main)
