@@ -11,3 +11,5 @@ vendor/
 # any reconstructed data
 reconstructed/
 outputs*
+# any images
+*.png
