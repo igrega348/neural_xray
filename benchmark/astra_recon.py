@@ -208,7 +208,7 @@ def main(
     rec = normalize_reorder(rec)
     _tmp = rec.swapaxes(0,2).astype(np.float32)
     _tmp.tofile(output_dir/f'vol_zyx.raw') 
-    np.save(output_dir/f'vol_zyx.npy', _tmp)
+    np.savez_compressed(output_dir/f'vol_zyx.npz', vol=_tmp)
     del _tmp
 
     # save slice
