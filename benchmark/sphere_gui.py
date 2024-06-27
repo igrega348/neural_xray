@@ -3,7 +3,10 @@ import numpy as np
 import cv2 as cv
 import tyro
 
-def main(input: Path):
+def main(
+    input: Path,
+    zxy: bool = False
+):
     assert input.is_file(), f'Input file {input} does not exist'
     if input.suffix == '.npz':
         data = np.load(input)['vol']
@@ -11,6 +14,8 @@ def main(input: Path):
         data = np.load(input)
     else:
         raise ValueError(f'Invalid input file {input}')
+    if zxy:
+        data = data.swapaxes(0,2)
     print(f'Loaded {data.size} elements of type {data.dtype}')
     nx, ny, nz = data.shape
 
@@ -122,7 +127,14 @@ def main(input: Path):
         ry = np.sqrt(deltay**2 + circle_data['y']['ry']**2)
         rz = np.sqrt(deltaz**2 + circle_data['z']['rz']**2)
         R = np.mean([rx, ry, rz])
-        print(f'Centre: {xc}, {yc}, {zc}, Radius: {R}')
+        print(f'Centre: {xc}, {yc}, {zc}, Radius: {R:.3g}')
+        # normalized coordinates
+        xc = xc / nx * 2 - 1
+        yc = yc / ny * 2 - 1
+        zc = zc / nz * 2 - 1
+        assert nx == ny == nz
+        R = R / nx * 2
+        print(f'\tNormalised: ({xc:.3g}, {yc:.3g}, {zc:.3g}), {R:.3g}')
 
     cv.createTrackbar('x', 'control', 0, data.shape[0]-1, update_slices)
     cv.createTrackbar('y', 'control', 0, data.shape[1]-1, update_slices)
