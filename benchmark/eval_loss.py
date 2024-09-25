@@ -5,6 +5,8 @@ import json
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
+import os
+os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 from nerf_xray.objects import Object
 # %%
@@ -19,12 +21,20 @@ def main(obj_path: Path, volume_grid_path: Path, resolution: int = 200):
         volume_grid_path = Path(volume_grid_path)
     assert 'yaml' in obj_path.suffix
     obj = Object.from_yaml(obj_path)
-    vol = np.fromfile(volume_grid_path, dtype='uint8')
-    vol = vol.reshape(resolution, resolution, resolution).swapaxes(0, 2) # xyz
+    if volume_grid_path.suffix == '.npy':
+        vol = np.load(volume_grid_path)
+        resolution = vol.shape[0]
+    elif volume_grid_path.suffix == '.npz':
+        vol = np.load(volume_grid_path)['vol']
+        resolution = vol.shape[0]
+    else:
+        assert volume_grid_path.suffix == '.raw'
+        vol = np.fromfile(volume_grid_path, dtype='uint16').astype(np.float32)
+        vol = vol.reshape(resolution, resolution, resolution).swapaxes(0, 2) # xyz
 
-    pos = torch.linspace(0, 1, 200)
+    pos = torch.linspace(0, 1, resolution)
     pos = torch.stack(torch.meshgrid(pos, pos, pos, indexing='ij'), dim=-1)
-    density = obj.t_density(pos.view(-1, 3)).view(200, 200, 200)
+    density = obj.t_density(pos.view(-1, 3)).view(resolution, resolution, resolution)
     
     # plot slices as sanity check
     fig, axs = plt.subplots(1, 2)
@@ -54,6 +64,7 @@ def main(obj_path: Path, volume_grid_path: Path, resolution: int = 200):
         'scaled_volumetric_loss': scaled_density_loss,
         'normed_correlation': normed_correlation.item()
         }
+    print(loss_dict)
     # save to file
     (volume_grid_path.parent/'eval_loss.json').write_text(json.dumps(loss_dict, indent=2))
 # %%

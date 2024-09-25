@@ -129,7 +129,8 @@ def main(
         imin: int = 0,
         imax: int = 1 << 26,
         istep: int = 1,
-        algorithm: Optional[Literal['SIRT3D_CUDA','CGLS3D_CUDA']] = 'SIRT3D_CUDA'
+        algorithm: Optional[Literal['SIRT3D_CUDA','CGLS3D_CUDA']] = 'SIRT3D_CUDA',
+        stopping_threshold: float = 1e-3
 ):
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f'Output folder: {output_dir}')
@@ -138,8 +139,8 @@ def main(
         Lscale = float(resolution/2)
     
     def filter_name(x):
-        # if 'train' not in x:
-        #     return False
+        if 'train' not in x:
+            return False
         i = int(x.split("_")[-1])
         return i >= imin and i<=imax and (i - imin) % istep == 0
     # filter_name = lambda x: True
@@ -192,23 +193,22 @@ def main(
         rec = normalize_reorder(rec)
         save_slice(rec, output_dir)
 
-        t.update({'Iteration': i, 'Error': residual_error[-1]})
         # check convergence
         if len(residual_error) > 1:
             rng = max(residual_error) - min(residual_error)
             de = residual_error[-1] - residual_error[-2]
             de_rng = de / rng
             # improvement by less than threshold
-            if de > 0 or -de_rng < 0.001:
+            if de > 0 or -de_rng < stopping_threshold:
                 break
         t.update({'Iteration': i, 'Error': residual_error[-1], 'de/rng': de_rng})
 
     # Get the result and save
     rec = astra.data3d.get(rec_id)
     rec = normalize_reorder(rec)
-    _tmp = rec.swapaxes(0,2).astype(np.float32)
-    _tmp.tofile(output_dir/f'vol_zyx.raw') 
-    np.savez_compressed(output_dir/f'vol_zyx.npz', vol=_tmp)
+    _tmp = rec.astype(np.uint16)
+    _tmp.swapaxes(0,2).tofile(output_dir/f'vol_zyx.raw') 
+    np.savez_compressed(output_dir/f'vol.npz', vol=_tmp)
     del _tmp
 
     # save slice

@@ -13,3 +13,9 @@ reconstructed/
 outputs*
 # any images
 *.png
+# volume files
+*.raw
+*.npy
+*.npz
+# reconstruction config files
+config.json
