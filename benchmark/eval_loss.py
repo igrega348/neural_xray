@@ -1,5 +1,7 @@
 # %%
 from pathlib import Path
+from typing import Optional
+from enum import Enum
 import tyro
 import json
 import numpy as np
@@ -8,47 +10,68 @@ import matplotlib.pyplot as plt
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
-from nerf_xray.objects import Object
+from nerf_xray.objects import Object, VoxelGrid
+# %%
+class DTYPES(Enum):
+    UINT8 = np.uint8
+    UINT16 = np.uint16
+    UINT32 = np.uint32
+    UINT64 = np.uint64
+    INT8 = np.int8
+    INT16 = np.int16
+    INT32 = np.int32
+    INT64 = np.int64
+    FLOAT32 = np.float32
+    FLOAT64 = np.float64
+# %%
+def load_obj(ref_path: Path, resolution: Optional[int]=None, dtype: Optional[DTYPES]=None):
+    if ref_path.suffix in ['.npy', '.npz', '.yaml']:
+        assert resolution is None
+        assert dtype is None
+        vol = Object.from_file(ref_path)
+    elif ref_path.suffix == '.raw':
+        assert resolution is not None
+        assert dtype is not None
+        vol = np.fromfile(ref_path, dtype=dtype).astype(dtype)
+        vol = vol.reshape(resolution, resolution, resolution) # ZYX as needed for torch
+        vol = torch.from_numpy(vol).float()
+        vol = VoxelGrid(vol)
+    else:
+        raise ValueError(f'Unsupported file format {ref_path.suffix}')
+    if isinstance(vol, VoxelGrid):
+        print(f'VoxelGrid of shape {vol.rho.shape} loaded')
+    return vol
 # %%
 def main(
     obj_path: Path, 
-    volume_grid_path: Path, 
-    resolution: int = 200,
-    dtype: str = 'uint16'
+    ref_path: Path, 
+    eval_resolution: int = 200,
+    obj_resolution: Optional[int] = None,
+    obj_dtype: Optional[DTYPES] = None,
+    ref_resolution: Optional[int] = None,
+    ref_dtype: Optional[DTYPES] = None,
 ):
-    if obj_path.is_dir():
-        obj_path = list(obj_path.glob('*.yaml'))
-        assert len(obj_path) == 1, f'Found {len(obj_path)} yaml files in {obj_path}'
-        obj_path = obj_path[0]
     print(f'Loading object from {obj_path}')
-    obj = Object.from_file(obj_path)
-    if volume_grid_path.suffix == '.npy':
-        vol = np.load(volume_grid_path)
-        resolution = vol.shape[0]
-        print(f"Resolution changed to {resolution}")
-    elif volume_grid_path.suffix == '.npz':
-        vol = np.load(volume_grid_path)['vol']
-        resolution = vol.shape[0]
-        print(f"Resolution changed to {resolution}")
-    else:
-        assert volume_grid_path.suffix == '.raw'
-        vol = np.fromfile(volume_grid_path, dtype=dtype).astype(np.float32)
-        vol = vol.reshape(resolution, resolution, resolution).swapaxes(0, 2) # xyz
+    obj = load_obj(obj_path, obj_resolution, obj_dtype)
 
-    pos = torch.linspace(0, 1, resolution)
+    print(f'Loading reference object from {ref_path}')
+    vol = load_obj(ref_path, ref_resolution, ref_dtype)
+
+    pos = torch.linspace(0, 1, eval_resolution)
     pos = torch.stack(torch.meshgrid(pos, pos, pos, indexing='ij'), dim=-1)
-    density = obj.t_density(pos.view(-1, 3)).view(resolution, resolution, resolution)
+    density = obj.t_density(pos.view(-1, 3)).view(eval_resolution, eval_resolution, eval_resolution)
+    ref_density = vol.t_density(pos.view(-1, 3)).view(eval_resolution, eval_resolution, eval_resolution)
     
     # plot slices as sanity check
     fig, axs = plt.subplots(1, 2)
-    axs[0].imshow(vol[:,:,resolution//2])
+    axs[0].imshow(ref_density[:,:,eval_resolution//2])
     axs[0].set_title('Recon')
-    axs[1].imshow(density[:,:,resolution//2].cpu().numpy())
+    axs[1].imshow(density[:,:,eval_resolution//2].cpu().numpy())
     axs[1].set_title('Target')
-    plt.savefig(volume_grid_path.parent/'slices_eval.png')
+    plt.savefig(ref_path.parent/'slices_eval.png')
     plt.close()
 
-    y = torch.from_numpy(vol).float().flatten() / 255.0
+    y = ref_density.flatten()
     x = density.flatten()
 
     density_loss = torch.nn.functional.mse_loss(y, x).item()
@@ -69,7 +92,7 @@ def main(
         }
     print(loss_dict)
     # save to file
-    (volume_grid_path.parent/'eval_loss.json').write_text(json.dumps(loss_dict, indent=2))
+    (ref_path.parent/'eval_loss.json').write_text(json.dumps(loss_dict, indent=2))
 # %%
 if __name__=='__main__':
     tyro.cli(main)
