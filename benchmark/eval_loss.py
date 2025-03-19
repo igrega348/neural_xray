@@ -10,26 +10,29 @@ os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
 
 from nerf_xray.objects import Object
 # %%
-def main(obj_path: Path, volume_grid_path: Path, resolution: int = 200):
-    if not isinstance(obj_path, Path):
-        obj_path = Path(obj_path)
+def main(
+    obj_path: Path, 
+    volume_grid_path: Path, 
+    resolution: int = 200,
+    dtype: str = 'uint16'
+):
     if obj_path.is_dir():
         obj_path = list(obj_path.glob('*.yaml'))
         assert len(obj_path) == 1, f'Found {len(obj_path)} yaml files in {obj_path}'
         obj_path = obj_path[0]
-    if not isinstance(volume_grid_path, Path):
-        volume_grid_path = Path(volume_grid_path)
-    assert 'yaml' in obj_path.suffix
-    obj = Object.from_yaml(obj_path)
+    print(f'Loading object from {obj_path}')
+    obj = Object.from_file(obj_path)
     if volume_grid_path.suffix == '.npy':
         vol = np.load(volume_grid_path)
         resolution = vol.shape[0]
+        print(f"Resolution changed to {resolution}")
     elif volume_grid_path.suffix == '.npz':
         vol = np.load(volume_grid_path)['vol']
         resolution = vol.shape[0]
+        print(f"Resolution changed to {resolution}")
     else:
         assert volume_grid_path.suffix == '.raw'
-        vol = np.fromfile(volume_grid_path, dtype='uint16').astype(np.float32)
+        vol = np.fromfile(volume_grid_path, dtype=dtype).astype(np.float32)
         vol = vol.reshape(resolution, resolution, resolution).swapaxes(0, 2) # xyz
 
     pos = torch.linspace(0, 1, resolution)
@@ -38,9 +41,9 @@ def main(obj_path: Path, volume_grid_path: Path, resolution: int = 200):
     
     # plot slices as sanity check
     fig, axs = plt.subplots(1, 2)
-    axs[0].imshow(vol[:,:,100])
+    axs[0].imshow(vol[:,:,resolution//2])
     axs[0].set_title('Recon')
-    axs[1].imshow(density[:,:,100].cpu().numpy())
+    axs[1].imshow(density[:,:,resolution//2].cpu().numpy())
     axs[1].set_title('Target')
     plt.savefig(volume_grid_path.parent/'slices_eval.png')
     plt.close()
