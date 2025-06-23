@@ -8,7 +8,7 @@ if [ -z "$RUNNING_FROM_COPY" ]; then
     SCRIPT_COPY=$(mktemp)
 	RUNSCRIPT_COPY=$(mktemp)
     cp "$0" "$SCRIPT_COPY"
-	cp ./scripts/run_dset.sh "$RUNSCRIPT_COPY"
+	cp ./run_dset.sh "$RUNSCRIPT_COPY"
     chmod +x "$SCRIPT_COPY"
 	chmod +x "$RUNSCRIPT_COPY"
 	echo "Running from $SCRIPT_COPY"

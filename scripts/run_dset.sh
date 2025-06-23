@@ -1,8 +1,8 @@
 #!/bin/bash
 
-pardir="/home/ubuntu/nerfstudio-dc/neural_xray/scripts"
+pardir="/teamspace/studios/this_studio/neural_xray/scripts"   # it is a variable name defined the parent directory
 # run with run_dset.sh dset mode batch_size suf suf2 n0 n1 steps lrpw wus timedelta numsteps
-echo "Running with args: $@"
+echo "Running with args: $@"     # Output a text to the terminal 
 
 dset=$1
 mode=$2
@@ -18,7 +18,7 @@ timedelta=${11}
 numsteps=${12}
 echo "mode=$mode, batch_size=$batch_size, suf=$suf, suf2=$suf2, n0=$n0, n1=$n1, steps=$steps, lrpw=$lrpw, wus=$wus, timedelta=$timedelta, numsteps=$numsteps"
  
-dsetpath="data/experimental/$dset"
+dsetpath="/teamspace/studios/this_studio/neural_xray/data/experimental/$dset"
 data0=$(find $dsetpath -mindepth 1 -maxdepth 1 -regex '.*/transforms_[0]+\.json')
 data1=$(find $dsetpath -mindepth 1 -maxdepth 1 -regex '.*/transforms_[1-9][0-9]*\.json' | sort -V | tail -n 1)
 dataall=$(find $dsetpath -mindepth 1 -maxdepth 1 -regex '.*/transforms_[0]+_to_[0-9]+\.json')
@@ -33,10 +33,11 @@ echo "grid0: $grid0"
 echo "grid1: $grid1"
 echo "###########################################################"
 
-outdir="outputs"
+outdir="/teamspace/studios/this_studio/neural_xray/outputs"
 
 weight_nn_width_0=20
 weight_nn_width_1=20
+downscale_factor=4
 
 padsteps=$(printf '%09d' $steps)
 eval_batch_size=$((batch_size / 2))
@@ -68,7 +69,7 @@ if [ $mode = "canonical" ]; then
 		--optimizers.flat_field.scheduler.steady_steps 2000 \
 		--optimizers.flat_field.scheduler.max_steps $numsteps \
 		--timestamp "canonical_F$suf" \
-		multi-camera-dataparser --downscale-factors.val 8 --downscale-factors.test 8 || exit 1
+		multi-camera-dataparser --downscale-factors.val $downscale_factor --downscale-factors.test $downscale_factor || exit 1
 	
 	echo "Training canonical volume backward"
 	python $pardir/../nerfstudio/nerfstudio/scripts/train.py nerf_xray \
@@ -95,7 +96,7 @@ if [ $mode = "canonical" ]; then
 		--optimizers.flat_field.scheduler.steady_steps 2000 \
 		--optimizers.flat_field.scheduler.max_steps $numsteps \
 		--timestamp "canonical_B$suf" \
-		multi-camera-dataparser --downscale-factors.val 8 --downscale-factors.test 8 || exit 1
+		multi-camera-dataparser --downscale-factors.val $downscale_factor --downscale-factors.test $downscale_factor || exit 1
     
 elif [ $mode = "vfield" ]; then
 	if [ ! -f $dataall ]; then
@@ -172,7 +173,7 @@ elif [ $mode = "vfield" ]; then
 		--optimizers.flat_field.optimizer.lr 1e-5 \
 		--timestamp "vel_${n1}${suf2}" \
 		--machine.seed 40 \
-		multi-camera-dataparser --downscale-factors.val 8 --downscale-factors.test 8 || exit 1
+		multi-camera-dataparser --downscale-factors.val $downscale_factor --downscale-factors.test $downscale_factor || exit 1
 
 elif [ $mode = "spatiotemporal_mix" ]; then
 	echo "Training spatiotemporal mixing. Output to vel_${n0}${suf2}"
@@ -235,7 +236,7 @@ elif [ $mode = "spatiotemporal_mix" ]; then
 		--optimizers.field_weighing.scheduler.warmup_steps 200 \
 		--timestamp "vel_${n0}${suf2}" \
 		--machine.seed 40 \
-		multi-camera-dataparser --downscale-factors.val 8 --downscale-factors.test 8
+		multi-camera-dataparser --downscale-factors.val $downscale_factor --downscale-factors.test $downscale_factor
 
 elif [ $mode = "export_canonical" ]; then
     
@@ -288,7 +289,7 @@ elif [ $mode = "export" ]; then
 	# 	normalized_time=$(awk -v n="$num" -v min="$min_num" -v max="$max_num" 'BEGIN { printf "%.2f", (n - min) / (max - min) }')
 	# 	normalized_times+=($normalized_time)
 	# done
-	normalized_times=(0.05 0.10 0.15 0.25 0.30 0.35 0.45 0.50 0.55 0.65 0.70 0.75 0.85 0.90 0.95)
+	normalized_times=(0.0 0.2 0.4 0.6 0.8 1.0)
 	
     for t in ${normalized_times[@]}; do
         echo "Exporting $dname, t=$t"
