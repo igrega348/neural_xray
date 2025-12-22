@@ -1,7 +1,25 @@
-# neural_xray
-Exploring the potential for neural rendering methods in x-ray tomography
+# High-speed X-ray tomography for 4D imaging
 
-## How to run the code
+[![Paper](https://img.shields.io/badge/Paper-PNAS-blue)](https://www.pnas.org/doi/10.1073/pnas.2521089122)
+
+## Motivation
+
+X-ray computed tomography (X-CT) is an established method for 3d characterization of objects with applications ranging from medical imaging to industrial component inspection.
+While in this project we focus on materials engineering, the developed techniques can be used in many other domains.
+
+![Motivation](https://github.com/Neural-Xray/nerfxray/blob/main/assets/motivation.gif?raw=true)
+_Left: Detailed brain X-CT [1]. Middle: X-CT of a gear with a set screw. Right: Strain inside a lattice sample._
+
+Interrupted in-situ X-CT has been employed to study material response to deformation: for instance it revealed new insights into fracture behaviour of lattice materials [2] or surprising new behaviours in rubber elasticity [3].
+The principle of the method is to interrupt deformation sequence at several stages and obtain a _tomogram_ at quasi-static conditions.
+The acquisition of a tomogram requires the collection of many (~3000) projections and subsequent tomographic reconstruction.
+The exposure time in a lab-based X-CT system is on the order of 1 second, therefore tomogram acquisition takes about 1 hour (which has to be repeated at every deformation stage).
+Due to the number of projections needed for conventional tomographic reconstruction, it has not been posible to obtain 3d reconstruction of _dynamic, high-speed_ deformations.
+In this work we address this limitation by developing a framework based on neural rendering in which we combine high-fidelity X-CT obtained at the start and end of deformation with few (two) simultaneous projections taken during deformation to obtain a full 3d spatio-temporal reconstruction.
+
+
+
+## Setting up
     
 1. Get access to a machine with Nvidia GPU (local, or cloud; see platform-specific instructions below)
 2. Clone the repository with submodules
@@ -45,3 +63,12 @@ pip install -e .
 cd ../nerfstudio-xray/nerf-xray/
 pip install -e .
 ```
+
+
+## References
+
+[1] Brain CT animation adapted from Human Organ Atlas ([doi:10.15151/ESRF-DC-572252655](http://doi.org/10.15151/ESRF-DC-572252655), [https://human-organ-atlas.esrf.eu/datasets/572252538](https://human-organ-atlas.esrf.eu/datasets/572252538)) under CC-BY-4.0 license.
+
+[2] Shaikeea, A.J.D., Cui, H., O’Masta, M. et al. The toughness of mechanical metamaterials. Nat. Mater. 21, 297–304 (2022). [doi.org/10.1038/s41563-021-01182-1](https://doi.org/10.1038/s41563-021-01182-1).
+
+[3] Wang, Z., Das, S., Joshi, A. et al. 3D observations provide striking findings in rubber elasticity. PNAS, 121, 24 (2024). [doi.org/10.1073/pnas.2404205121](https://doi.org/10.1073/pnas.2404205121)
