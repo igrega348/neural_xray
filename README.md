@@ -17,6 +17,8 @@ The exposure time in a lab-based X-CT system is on the order of 1 second, theref
 Due to the number of projections needed for conventional tomographic reconstruction, it has not been posible to obtain 3d reconstruction of _dynamic, high-speed_ deformations.
 In this work we address this limitation by developing a framework based on neural rendering in which we combine high-fidelity X-CT obtained at the start and end of deformation with few (two) simultaneous projections taken during deformation to obtain a full 3d spatio-temporal reconstruction.
 
+![Illustration of framework](https://github.com/user-attachments/assets/4cbde9e6-7c46-479d-ac39-bfd2c9b29999)
+_Illustration of the framework._
 
 
 ## Setting up
