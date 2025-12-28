@@ -1,6 +1,7 @@
 # High-speed X-ray tomography for 4D imaging
 
 [![Paper](https://img.shields.io/badge/Paper-PNAS-blue)](https://www.pnas.org/doi/10.1073/pnas.2521089122)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/igrega348/neural_xray/blob/main/colab/demo.ipynb)
 
 ## Motivation
 
