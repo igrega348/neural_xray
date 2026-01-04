@@ -220,7 +220,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE_VF \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE_VF \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE_VF \
-    --pipeline.model.num_nerf_sampels_per_ray $VF_NUM_SAMPLES_PER_RAY \
+    --pipeline.model.num_nerf_samples_per_ray $VF_NUM_SAMPLES_PER_RAY \
     --pipeline.model.distortion_loss_mult 0.0 \
     --pipeline.model.interlevel_loss_mult 0.0 \
     --pipeline.model.disable_mixing True \
@@ -290,7 +290,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE_VF \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE_VF \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE_VF \
-    --pipeline.model.num_nerf_sampels_per_ray $VF_NUM_SAMPLES_PER_RAY \
+    --pipeline.model.num_nerf_samples_per_ray $VF_NUM_SAMPLES_PER_RAY \
     --pipeline.model.distortion_loss_mult 0.0 \
     --pipeline.model.interlevel_loss_mult 0.0 \
     --pipeline.model.disable_mixing True \
