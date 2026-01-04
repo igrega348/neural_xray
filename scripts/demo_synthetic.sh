@@ -126,6 +126,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --output_dir "$OUTPUT_DIR" \
     --logging.local-writer.max-log-size 10 \
     --pipeline.volumetric_supervision False \
+    --pipeline.datamanager.volume_grid_file "$GRID0" \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
@@ -155,6 +156,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --output_dir "$OUTPUT_DIR" \
     --logging.local-writer.max-log-size 10 \
     --pipeline.volumetric_supervision False \
+    --pipeline.datamanager.volume_grid_file "$GRID1" \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
