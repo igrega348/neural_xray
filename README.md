@@ -21,6 +21,21 @@ In this work we address this limitation by developing a framework based on neura
 ![Illustration of framework](https://github.com/user-attachments/assets/4cbde9e6-7c46-479d-ac39-bfd2c9b29999)
 _Illustration of the framework._
 
+## Quick Start
+
+The easiest way to get started is to try our [Google Colab notebook](https://colab.research.google.com/github/igrega348/neural_xray/blob/main/colab/demo.ipynb), which provides a complete end-to-end demo of the framework. The notebook includes:
+
+- Synthetic data generation
+- Training of canonical volumes (forward and backward)
+- Velocity field training
+- Visualization with TensorBoard
+
+**Note on Colab T4 GPU limitations:** The Colab notebook is configured to run on T4 GPUs with ~16GB memory. To fit within these constraints, training parameters have been reduced:
+- Batch size: 2048 (canonical training), 256 (velocity field training)
+- NeRF samples per ray: 256
+- Training time: ~30 minutes on T4
+
+The demo uses synthetic data, which is simpler than real experimental data. Real experimental data typically requires higher spatial resolution of the deformation field to capture more complex deformations.
 
 ## Setting up
     
