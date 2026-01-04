@@ -35,7 +35,7 @@ The easiest way to get started is to try our [Google Colab notebook](https://col
 - NeRF samples per ray: 256
 - Training time: ~30 minutes on T4
 
-The demo uses synthetic data, which is simpler than real experimental data. Real experimental data typically requires higher spatial resolution of the deformation field to capture more complex deformations.
+The demo uses synthetic data, which is simpler than real experimental data. Real experimental data typically requires higher spatial resolution of the deformation field to capture more complex deformations. Large-scale runs with experimental data were performed on Grasshopper GH200 Lambda machines.
 
 ## Setting up
     
