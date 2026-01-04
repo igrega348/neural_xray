@@ -10,9 +10,7 @@ from pathlib import Path
 import tempfile
 import shutil
 
-# Add xray_projection_render to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "xray_projection_render"))
-from xray_renderer import XRayRenderer
+from xray_projection_render import XRayRenderer
 
 
 def apply_deformation(X_1, X_2, X_3, t):
