@@ -49,8 +49,8 @@ if command -v convert &> /dev/null; then
         exit 1
     fi
     
-    # Create GIF with 0.1 second delay between frames (10 fps)
-    convert -delay 10 -loop 0 "${TRAIN_IMAGES[@]}" "$ROTATION_GIF"
+    # Create GIF with 0.2 second delay between frames (5 fps)
+    convert -delay 20 -loop 0 "${TRAIN_IMAGES[@]}" "$ROTATION_GIF"
     
     echo "✓ Rotation GIF created: $ROTATION_GIF"
     echo "  Shows radiographs as the object rotates (${#TRAIN_IMAGES[@]} camera angles)"
@@ -85,13 +85,13 @@ for img_path in train_images:
     img = Image.open(img_path)
     frames.append(img.copy())
 
-# Save as animated GIF (100ms delay = 10 fps)
+# Save as animated GIF (200ms delay = 5 fps)
 if frames:
     frames[0].save(
         str(rotation_gif),
         save_all=True,
         append_images=frames[1:],
-        duration=100,  # milliseconds per frame
+        duration=200,  # milliseconds per frame
         loop=0  # infinite loop
     )
     print(f"✓ Rotation GIF created: {rotation_gif}")
