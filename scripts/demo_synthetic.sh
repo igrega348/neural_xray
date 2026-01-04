@@ -39,41 +39,75 @@ echo "Data directory: $DATA_DIR"
 echo "Output directory: $OUTPUT_DIR"
 echo ""
 
-# Step 1: Generate synthetic data
+# Step 1: Check for existing data or generate synthetic data
 echo "=========================================="
-echo "Step 1: Generating synthetic data"
+echo "Step 1: Checking for existing synthetic data"
 echo "=========================================="
-bash "$SCRIPT_DIR/generate_and_animate.sh"
 
-if [ $? -ne 0 ]; then
-    echo "Error: Data generation failed!"
-    exit 1
-fi
+# Define required files
+REQUIRED_FILES=(
+    "$DATA_DIR/transforms_00.json"
+    "$DATA_DIR/transforms_20.json"
+    "$DATA_DIR/transforms_00_to_20.json"
+    "$DATA_DIR/balls_00.yaml"
+    "$DATA_DIR/balls_20.yaml"
+)
 
-# Verify required files exist
-echo ""
-echo "Verifying generated files..."
-if [ ! -f "$DATA_DIR/transforms_00.json" ]; then
-    echo "Error: transforms_00.json not found!"
-    exit 1
+# Check if all required files exist
+ALL_FILES_EXIST=true
+MISSING_FILES=()
+
+for file in "${REQUIRED_FILES[@]}"; do
+    if [ ! -f "$file" ]; then
+        ALL_FILES_EXIST=false
+        MISSING_FILES+=("$file")
+    fi
+done
+
+if [ "$ALL_FILES_EXIST" = true ]; then
+    echo "✓ All required data files already exist"
+    echo "  Skipping data generation..."
+    echo ""
+    echo "Found files:"
+    for file in "${REQUIRED_FILES[@]}"; do
+        echo "  ✓ $(basename "$file")"
+    done
+else
+    echo "⚠ Some required data files are missing"
+    echo "  Generating synthetic data..."
+    echo ""
+    echo "Missing files:"
+    for file in "${MISSING_FILES[@]}"; do
+        echo "  ✗ $(basename "$file")"
+    done
+    echo ""
+    
+    # Generate synthetic data
+    bash "$SCRIPT_DIR/generate_and_animate.sh"
+    
+    if [ $? -ne 0 ]; then
+        echo "Error: Data generation failed!"
+        exit 1
+    fi
+    
+    # Verify all files were generated
+    echo ""
+    echo "Verifying generated files..."
+    ALL_GENERATED=true
+    for file in "${REQUIRED_FILES[@]}"; do
+        if [ ! -f "$file" ]; then
+            echo "Error: $(basename "$file") was not generated!"
+            ALL_GENERATED=false
+        fi
+    done
+    
+    if [ "$ALL_GENERATED" = false ]; then
+        echo "Error: Not all required files were generated!"
+        exit 1
+    fi
+    
+    echo "✓ All required files successfully generated"
 fi
-if [ ! -f "$DATA_DIR/transforms_20.json" ]; then
-    echo "Error: transforms_20.json not found!"
-    exit 1
-fi
-if [ ! -f "$DATA_DIR/transforms_00_to_20.json" ]; then
-    echo "Error: transforms_00_to_20.json not found!"
-    exit 1
-fi
-if [ ! -f "$DATA_DIR/balls_00.yaml" ]; then
-    echo "Error: balls_00.yaml not found!"
-    exit 1
-fi
-if [ ! -f "$DATA_DIR/balls_20.yaml" ]; then
-    echo "Error: balls_20.yaml not found!"
-    exit 1
-fi
-echo "✓ All required files found"
 
 # Set up paths for training
 DATA0="$DATA_DIR/transforms_00.json"
