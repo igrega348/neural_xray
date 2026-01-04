@@ -130,19 +130,13 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
-    --pipeline.flat_field_penalty 0.005 \
-    --pipeline.model.flat_field_trainable True \
+    --pipeline.model.flat_field_trainable False \
     --max-num-iterations $((NUMSTEPS + 1)) \
     --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
     --optimizers.fields.scheduler.lr_final 1e-4 \
     --optimizers.fields.scheduler.warmup_steps 50 \
     --optimizers.fields.scheduler.steady_steps 2000 \
     --optimizers.fields.scheduler.max_steps $NUMSTEPS \
-    --optimizers.flat_field.scheduler.lr_pre_warmup 1e-8 \
-    --optimizers.flat_field.scheduler.lr_final 1e-4 \
-    --optimizers.flat_field.scheduler.warmup_steps 200 \
-    --optimizers.flat_field.scheduler.steady_steps 2000 \
-    --optimizers.flat_field.scheduler.max_steps $NUMSTEPS \
     --timestamp "canonical_F" \
     multi-camera-dataparser --downscale-factors.val $DOWNSCALE_FACTOR --downscale-factors.test $DOWNSCALE_FACTOR || exit 1
 
@@ -160,19 +154,13 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
     --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
-    --pipeline.flat_field_penalty 0.005 \
-    --pipeline.model.flat_field_trainable True \
+    --pipeline.model.flat_field_trainable False \
     --max-num-iterations $((NUMSTEPS + 1)) \
     --optimizers.fields.scheduler.lr_pre_warmup 1e-8 \
     --optimizers.fields.scheduler.lr_final 1e-4 \
     --optimizers.fields.scheduler.warmup_steps 50 \
     --optimizers.fields.scheduler.steady_steps 2000 \
     --optimizers.fields.scheduler.max_steps $NUMSTEPS \
-    --optimizers.flat_field.scheduler.lr_pre_warmup 1e-8 \
-    --optimizers.flat_field.scheduler.lr_final 1e-4 \
-    --optimizers.flat_field.scheduler.warmup_steps 200 \
-    --optimizers.flat_field.scheduler.steady_steps 2000 \
-    --optimizers.flat_field.scheduler.max_steps $NUMSTEPS \
     --timestamp "canonical_B" \
     multi-camera-dataparser --downscale-factors.val $DOWNSCALE_FACTOR --downscale-factors.test $DOWNSCALE_FACTOR || exit 1
 
@@ -230,7 +218,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.deformation_field.weight_nn_gain 1.0 \
     --pipeline.model.deformation_field.timedelta $VFIELD_RES_6_TIMEDELTA \
     --pipeline.model.deformation_field.displacement_method $BSPLINE_METHOD \
-    --pipeline.model.flat_field_trainable True \
+    --pipeline.model.flat_field_trainable False \
     --pipeline.model.train_field_weighing False \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
@@ -240,7 +228,6 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.disable_mixing True \
     --pipeline.density_mismatch_start_step -1 \
     --pipeline.density_mismatch_coefficient 1e-3 \
-    --pipeline.flat_field_loss_multiplier 0.0 \
     --optimizers.fields.optimizer.lr 1e-4 \
     --optimizers.fields.optimizer.weight_decay 1e-1 \
     --optimizers.fields.scheduler.lr_pre_warmup $VFIELD_RES_6_LRPW \
@@ -248,7 +235,6 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --optimizers.fields.scheduler.warmup_steps $VFIELD_RES_6_WUS \
     --optimizers.fields.scheduler.steady_steps $(($NUMSTEPS - 1000)) \
     --optimizers.fields.scheduler.max_steps $NUMSTEPS \
-    --optimizers.flat_field.optimizer.lr 1e-5 \
     --timestamp "vel_${N1}${SUF2}" \
     --machine.seed 40 \
     multi-camera-dataparser --downscale-factors.val $DOWNSCALE_FACTOR --downscale-factors.test $DOWNSCALE_FACTOR || exit 1
@@ -306,7 +292,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.deformation_field.weight_nn_gain 1.0 \
     --pipeline.model.deformation_field.timedelta $VFIELD_RES_12_TIMEDELTA \
     --pipeline.model.deformation_field.displacement_method $BSPLINE_METHOD \
-    --pipeline.model.flat_field_trainable True \
+    --pipeline.model.flat_field_trainable False \
     --pipeline.model.train_field_weighing False \
     --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
     --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
@@ -316,7 +302,6 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.disable_mixing True \
     --pipeline.density_mismatch_start_step -1 \
     --pipeline.density_mismatch_coefficient 1e-3 \
-    --pipeline.flat_field_loss_multiplier 0.0 \
     --optimizers.fields.optimizer.lr 1e-4 \
     --optimizers.fields.optimizer.weight_decay 1e-1 \
     --optimizers.fields.scheduler.lr_pre_warmup $VFIELD_RES_12_LRPW \
@@ -324,7 +309,6 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --optimizers.fields.scheduler.warmup_steps $VFIELD_RES_12_WUS \
     --optimizers.fields.scheduler.steady_steps $(($NUMSTEPS - 1000)) \
     --optimizers.fields.scheduler.max_steps $NUMSTEPS \
-    --optimizers.flat_field.optimizer.lr 1e-5 \
     --timestamp "vel_${N1}${SUF2}" \
     --machine.seed 40 \
     multi-camera-dataparser --downscale-factors.val $DOWNSCALE_FACTOR --downscale-factors.test $DOWNSCALE_FACTOR || exit 1
