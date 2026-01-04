@@ -15,12 +15,14 @@ OUTPUT_DIR="$WORKSPACE_ROOT/outputs"
 
 # Training parameters
 BATCH_SIZE=2048
-NUMSTEPS=3000
-STEPS=3000
+BATCH_SIZE_VF=512
+VF_NUM_SAMPLES_PER_RAY=256
+NUMSTEPS=2000
 DOWNSCALE_FACTOR=2
 WEIGHT_NN_WIDTH=20
 EVAL_BATCH_SIZE=$((BATCH_SIZE / 2))
-PADSTEPS=$(printf '%09d' $STEPS)
+EVAL_BATCH_SIZE_VF=$((BATCH_SIZE_VF / 2))
+BSPLINE_METHOD='matrix'
 
 # Velocity field parameters
 VFIELD_RES_6_LRPW=1e-3
@@ -174,13 +176,8 @@ N0=6
 N1=6
 SUF=""
 SUF2=""
-
-# Determine B-spline method
-if [ $N1 -lt 17 ]; then
-    BSPLINE_METHOD='matrix'
-else
-    BSPLINE_METHOD='neighborhood'
-fi
+STEPS=$NUMSTEPS
+PADSTEPS=$(printf '%09d' $STEPS)
 
 # Create checkpoint directory if needed
 mkdir -p "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models"
@@ -209,7 +206,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --load-optimizer $LOAD_OPTIMIZER \
     --pipeline.volumetric_supervision True \
     --pipeline.volumetric_supervision_coefficient 1e-4 \
-    --pipeline.volumetric_supervision_start_step 4000 \
+    --pipeline.volumetric_supervision_start_step $(($NUMSTEPS+1000)) \
     --pipeline.datamanager.init_volume_grid_file "$GRID0" \
     --pipeline.datamanager.final_volume_grid_file "$GRID1" \
     --pipeline.model.deformation_field.num_control_points $N1 $N1 $N1 \
@@ -220,9 +217,10 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.deformation_field.displacement_method $BSPLINE_METHOD \
     --pipeline.model.flat_field_trainable False \
     --pipeline.model.train_field_weighing False \
-    --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
-    --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
-    --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
+    --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE_VF \
+    --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE_VF \
+    --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE_VF \
+    --pipeline.model.num_nerf_sampels_per_ray $VF_NUM_SAMPLES_PER_RAY \
     --pipeline.model.distortion_loss_mult 0.0 \
     --pipeline.model.interlevel_loss_mult 0.0 \
     --pipeline.model.disable_mixing True \
@@ -247,13 +245,8 @@ echo "=========================================="
 
 N0=6
 N1=12
-
-# Determine B-spline method
-if [ $N1 -lt 17 ]; then
-    BSPLINE_METHOD='matrix'
-else
-    BSPLINE_METHOD='neighborhood'
-fi
+STEPS=$((NUMSTEPS+NUMSTEPS))
+PADSTEPS=$(printf '%09d' $STEPS)
 
 # Create checkpoint directory if needed
 mkdir -p "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models"
@@ -283,7 +276,7 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --load-optimizer $LOAD_OPTIMIZER \
     --pipeline.volumetric_supervision True \
     --pipeline.volumetric_supervision_coefficient 1e-4 \
-    --pipeline.volumetric_supervision_start_step 4000 \
+    --pipeline.volumetric_supervision_start_step $(($NUMSTEPS+1000)) \
     --pipeline.datamanager.init_volume_grid_file "$GRID0" \
     --pipeline.datamanager.final_volume_grid_file "$GRID1" \
     --pipeline.model.deformation_field.num_control_points $N1 $N1 $N1 \
@@ -294,9 +287,10 @@ python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --pipeline.model.deformation_field.displacement_method $BSPLINE_METHOD \
     --pipeline.model.flat_field_trainable False \
     --pipeline.model.train_field_weighing False \
-    --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE \
-    --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE \
-    --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE \
+    --pipeline.datamanager.train_num_rays_per_batch $BATCH_SIZE_VF \
+    --pipeline.datamanager.eval_num_rays_per_batch $EVAL_BATCH_SIZE_VF \
+    --pipeline.model.eval_num_rays_per_chunk $EVAL_BATCH_SIZE_VF \
+    --pipeline.model.num_nerf_sampels_per_ray $VF_NUM_SAMPLES_PER_RAY \
     --pipeline.model.distortion_loss_mult 0.0 \
     --pipeline.model.interlevel_loss_mult 0.0 \
     --pipeline.model.disable_mixing True \
