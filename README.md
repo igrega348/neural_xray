@@ -2,6 +2,8 @@
 
 [![Paper](https://img.shields.io/badge/Paper-PNAS-blue)](https://www.pnas.org/doi/10.1073/pnas.2521089122)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/igrega348/neural_xray/blob/main/colab/demo.ipynb)
+[![Data](https://img.shields.io/badge/Data-Dataset_Link-blue)](https://doi.org/10.17863/CAM.126862)
+
 
 ## Motivation
 
