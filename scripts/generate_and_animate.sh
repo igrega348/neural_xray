@@ -5,8 +5,8 @@ set -e  # Exit on error
 
 # Get the script directory and workspace root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-DATA_DIR="$WORKSPACE_ROOT/data/synthetic/balls"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+DATA_DIR="$PROJECT_ROOT/data/synthetic/balls"
 OUTPUT_GIF="$DATA_DIR/deformation_animation.gif"
 ROTATION_GIF="$DATA_DIR/rotation_animation.gif"
 
@@ -209,7 +209,7 @@ echo "=========================================="
 echo "Step 4: Downsampling eval images"
 echo "=========================================="
 
-RESIZE_SCRIPT="$WORKSPACE_ROOT/nerf_data/scripts/resize_for_eval.py"
+RESIZE_SCRIPT="$PROJECT_ROOT/nerf_data/scripts/resize_for_eval.py"
 
 if [ ! -f "$RESIZE_SCRIPT" ]; then
     echo "Error: Resize script not found at $RESIZE_SCRIPT"

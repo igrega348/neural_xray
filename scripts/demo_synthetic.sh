@@ -4,14 +4,14 @@
 
 set -e  # Exit on error
 
-# Get script directory and workspace root
+# Get script directory and project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORKSPACE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Dataset configuration
 DSET="balls"
-DATA_DIR="$WORKSPACE_ROOT/data/synthetic/$DSET"
-OUTPUT_DIR="$WORKSPACE_ROOT/outputs"
+DATA_DIR="$PROJECT_ROOT/data/synthetic/$DSET"
+OUTPUT_DIR="$PROJECT_ROOT/outputs"
 
 # Training parameters
 BATCH_SIZE=2048
@@ -36,7 +36,7 @@ VFIELD_RES_12_TIMEDELTA=0.1
 echo "=========================================="
 echo "Synthetic Data Training Demo"
 echo "=========================================="
-echo "Workspace root: $WORKSPACE_ROOT"
+echo "Project root: $PROJECT_ROOT"
 echo "Data directory: $DATA_DIR"
 echo "Output directory: $OUTPUT_DIR"
 echo ""
@@ -123,7 +123,7 @@ echo ""
 echo "=========================================="
 echo "Step 2: Training canonical volume forward"
 echo "=========================================="
-python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
+python "$PROJECT_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --data "$DATA0" \
     --output_dir "$OUTPUT_DIR" \
     --logging.local-writer.max-log-size 10 \
@@ -147,7 +147,7 @@ echo ""
 echo "=========================================="
 echo "Step 3: Training canonical volume backward"
 echo "=========================================="
-python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
+python "$PROJECT_ROOT/nerfstudio/nerfstudio/scripts/train.py" nerf_xray \
     --data "$DATA1" \
     --output_dir "$OUTPUT_DIR" \
     --logging.local-writer.max-log-size 10 \
@@ -185,7 +185,7 @@ mkdir -p "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models"
 # Combine forward and backward checkpoints
 if [ ! -f "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models/step-$PADSTEPS.ckpt" ]; then
     echo "Combining forward and backward checkpoints..."
-    python "$WORKSPACE_ROOT/nerfstudio-xray/nerf-xray/nerf_xray/combine_forward_backward_checkpoints.py" \
+    python "$PROJECT_ROOT/nerfstudio-xray/nerf-xray/nerf_xray/combine_forward_backward_checkpoints.py" \
         --fwd_ckpt "$OUTPUT_DIR/$DSET/nerf_xray/canonical_F${SUF}/nerfstudio_models/step-$PADSTEPS.ckpt" \
         --bwd_ckpt "$OUTPUT_DIR/$DSET/nerf_xray/canonical_B${SUF}/nerfstudio_models/step-$PADSTEPS.ckpt" \
         --out_fn "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models/step-$PADSTEPS.ckpt" || exit 1
@@ -195,7 +195,7 @@ else
 fi
 
 # Train velocity field
-python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
+python "$PROJECT_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --data "$DATAALL" \
     --output_dir "$OUTPUT_DIR" \
     --max-num-iterations $NUMSTEPS \
@@ -254,7 +254,7 @@ mkdir -p "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models"
 # Refine from resolution 6 to 12 if checkpoint doesn't exist
 if [ ! -f "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N1}${SUF2}/nerfstudio_models/step-$PADSTEPS.ckpt" ]; then
     echo "Refining velocity field from resolution $N0 to $N1..."
-    python "$WORKSPACE_ROOT/nerfstudio-xray/nerf-xray/nerf_xray/refine_vfield.py" \
+    python "$PROJECT_ROOT/nerfstudio-xray/nerf-xray/nerf_xray/refine_vfield.py" \
         --load-config "$OUTPUT_DIR/$DSET/xray_vfield/vel_${N0}${SUF}/config.yml" \
         --new-resolution $N1 \
         --new-nn-width $WEIGHT_NN_WIDTH \
@@ -265,7 +265,7 @@ else
 fi
 
 # Train velocity field at resolution 12
-python "$WORKSPACE_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
+python "$PROJECT_ROOT/nerfstudio/nerfstudio/scripts/train.py" xray_vfield \
     --data "$DATAALL" \
     --output_dir "$OUTPUT_DIR" \
     --max-num-iterations $NUMSTEPS \
