@@ -74,12 +74,7 @@ graph TD
     B --> B2[Backward Canonical]
     B1 --> C[Velocity Field Training]
     B2 --> C
-    C --> C1[Resolution 6]
-    C1 --> C2[Resolution 9]
-    C2 --> C3[Resolution 15]
-    C3 --> C4[Resolution 27]
-    C4 --> C5[Resolution 51]
-    C5 --> D[Spatiotemporal Mixing]
+    C --> D[Spatiotemporal Mixing]
     D --> E[4D Reconstruction]
     
     style A fill:#e1f5ff
