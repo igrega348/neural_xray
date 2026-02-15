@@ -91,20 +91,20 @@ graph TD
 
 **Stage 1: Canonical Volume Training**
 - Train neural radiance fields (NeRFs) to represent the 3D volume at the initial and final states
-- Forward canonical: learns the volume at the start of deformation
-- Backward canonical: learns the volume at the end of deformation
+- Forward canonical: learns the volume at the start of deformation, $\mu_0$
+- Backward canonical: learns the volume at the end of deformation, $\mu_1$
 
 **Stage 2: Velocity Field Training**
-- Learn a deformation field that maps points from the initial to final state
+- The canonical volumes are fixed and velocity field is trained that maps points from the initial and final state to intermediate states
 - Uses progressively higher resolution control points (6→9→15→27→51) for complex deformations
-- Combines forward and backward canonical volumes
+- Iteratively alternates between using forward and backward velocity field integration
 
-**Stage 3: Spatiotemporal Mixing** (for experimental data)
-- Refines the deformation field using temporal information
-- Enables smooth interpolation between time points
+**Stage 3: Spatiotemporal Mixing**
+- Fixes both canonical volumes and velocity fields, and learns a spatiotemporal mixing coefficient $\alpha(x,t)$
+- Combines information from forward and backward velocity field integration (see PNAS paper for details)
 
 **Stage 4: 4D Reconstruction**
-- Generate 3D volumes at any time point during the deformation
+- With a learned model, we can export 3D volumes at any time point during the deformation
 - Visualize and analyze the full spatio-temporal evolution
 
 ## Quick Start
@@ -290,12 +290,13 @@ This script runs a complete pipeline:
 **Experimental datasets:**
 - Download from: https://doi.org/10.17863/CAM.126862
 - Place in `data/experimental/` directory
-- Ensure data follows the expected structure (see dataset documentation)
+- Suggested to start with `04_kel_base_comp`
+- If you use your own data, ensure it follows the expected structure (see dataset documentation)
 
 **Data structure requirements:**
 - `transforms_00.json` - Initial state projections
-- `transforms_20.json` - Final state projections
-- `transforms_00_to_20.json` - Dynamic projections during deformation
+- `transforms_XX.json` - Final state projections
+- `transforms_00_to_XX.json` - Dynamic projections during deformation
 - `*.yaml` or `*.npz` - Volume grid files for initial and final states
 
 ### Workflow Overview
@@ -303,20 +304,20 @@ This script runs a complete pipeline:
 The complete training pipeline consists of:
 
 1. **Data Preparation**
-   - Organize X-ray projections into transforms JSON files
-   - Prepare volume grid files (YAML or NPZ format)
+   - Organize X-ray projections, transforms JSON files and volume grid files (YAML or NPZ format)
    - Optionally downscale images for faster training
 
 2. **Canonical Volume Training**
    - Train forward canonical: learns 3D volume at initial state
    - Train backward canonical: learns 3D volume at final state
-   - Each takes ~2000-3000 training steps
+   - Each takes ~3000 training steps and a few minutes
 
 3. **Velocity Field Training**
    - Combines forward and backward canonical volumes
    - Learns deformation field mapping initial to final state
    - Progressive refinement: start at low resolution (6 control points), refine to high resolution (51 control points)
    - Each resolution stage: ~3000 training steps
+   - Matrix method is faster but typically only affordable for resolution up to $n=15$ due to memory requirements. The neighborhood method has to be used for higher $n$.
 
 4. **Spatiotemporal Mixing** (experimental data only)
    - Refines deformation field using temporal information
@@ -326,7 +327,7 @@ The complete training pipeline consists of:
 5. **Visualization and Analysis**
    - Use TensorBoard to monitor training progress
    - Export 3D volumes at specific time points
-   - Analyze deformation patterns and material behavior
+   - Analyze deformation patterns and compare with ground truth where available. When ground truth is not available, check the self-correlation metric (see the PNAS paper)
 
 ## Troubleshooting
 
@@ -378,10 +379,11 @@ If you use this code in your research, please cite:
 ```bibtex
 @article{grega2024highspeed,
   title={High-speed X-ray tomography for 4D imaging},
-  author={Grega, Ivan and others},
+  author={Ivan Grega  and William Whitney  and Vikram Sudhir Deshpande },
   journal={Proceedings of the National Academy of Sciences},
-  year={2024},
-  doi={10.1073/pnas.2521089122}
+  year={2025},
+  doi={10.1073/pnas.2521089122},
+  url={https://www.pnas.org/doi/abs/10.1073/pnas.2521089122}
 }
 ```
 
