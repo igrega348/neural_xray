@@ -119,7 +119,8 @@ elif [ $mode = "eval" ]; then
 	echo "Evaluating $dname"
 	config_path=$dname/config.yml
 
+	suf_safe="${suf//\//_}"
 	python "$PROJECT_ROOT/nerfstudio/nerfstudio/scripts/eval.py" compute-psnr \
 		--load-config "$config_path" \
-		--output-path "$dname/eval_metrics_${dset}_${suf}.json"
+		--output-path "$dname/eval_metrics_${dset}_${suf_safe}.json"
 fi
